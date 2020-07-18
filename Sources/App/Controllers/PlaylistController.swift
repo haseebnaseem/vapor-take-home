@@ -20,7 +20,6 @@ final class PlaylistController {
                 let service = try req.make(ArtistService.self);
                 return try service.getSong(songIds: (playlist.songs)!, on: req).flatMap { songs in
                     playlist.song_details = songs;
-                    playlist.
                     return req.future(playlist);
                 }
             }
