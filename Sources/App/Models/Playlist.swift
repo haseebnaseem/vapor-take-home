@@ -12,12 +12,14 @@ final class Playlist: PostgreSQLModel {
     var name: String
     var description: String
     var songs: [Int]?
+    var song_details: [Song]?
     /// Creates a new `User`.
     init(id: Int? = nil, name: String, description: String) {
         self.id = id
         self.name = name
         self.description = description
         self.songs = []
+        self.song_details = [];
     }
 
     enum CodingKeys: String, CodingKey {
@@ -25,6 +27,7 @@ final class Playlist: PostgreSQLModel {
         case name
         case description
         case songs
+        case song_details
     }
 }
 
