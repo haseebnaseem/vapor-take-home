@@ -8,24 +8,25 @@ class PlaylistTest: XCTestCase {
     var app: Application!
     var connection: PostgreSQLConnection!
     var request: Request!
+    var mockArtistService: MockArtistService!
 
     override func setUp() {
         do {
-            print("doing set up")
             try Application.reset()
-            self.app = try Application.testable()
-            self.connection = try self.app.newConnection(to: .psql).wait()
+            app = try Application.testable()
+            connection = try self.app.newConnection(to: .psql).wait()
         }
         catch {
-            print("in catch")
             fatalError(error.localizedDescription)
         }
 
-        self.request = Request(using: self.app)
+        request = Request(using: self.app)
+        mockArtistService = try! request.make(MockArtistService.self)
+        mockArtistService.reset()
     }
 
     override func tearDown() {
-        self.connection?.close()
+        connection?.close()
         try? app.syncShutdownGracefully()
     }
 
@@ -130,5 +131,37 @@ class PlaylistTest: XCTestCase {
         XCTAssertEqual(playlistWithSongRemoved.id, playlistID)
         XCTAssertEqual(playlistWithSongRemoved.songs!.count, 0);
         
+    }
+    
+    func testSongDetailsInResponse() throws {
+        let newPlaylist = Playlist(name: "workout", description: "my workout playlist")
+        let playlist = try self.app.getResponse(to: "/playlists", method: .POST, data: newPlaylist, decodeTo: Playlist.self)
+        
+        let playlistID = try playlist.requireID()
+        //let retrievedPlaylist = try self.app.getResponse(to: "/playlists/\(playlistID)", decodeTo: Playlist.self)
+
+        //XCTAssertEqual(retrievedPlaylist.id, playlistID)
+        
+        let songToAdd = Song(id: 155876, title: "Insomnia", label: nil, thumb: "https://img.discogs.com/UbGgg61B8Lbo-nJC9-Kr44agCOY=/fit-in/150x150/filters:strip_icc():format(jpeg):mode_rgb():quality(40)/discogs-images/R-155876-1278467866.jpeg.jpg")
+        
+        
+        let withSongPlaylist = try self.app.getResponse(to: "/playlists/\(playlistID)/songs/\(songToAdd.id)", method: .POST, decodeTo: Playlist.self)
+        XCTAssertEqual(withSongPlaylist.id, playlistID)
+        XCTAssertEqual(withSongPlaylist.songs![0], songToAdd.id);
+        
+        mockArtistService.searchedSongs = [ songToAdd ]
+        let completePlaylist = try self.app.getResponse(to: "/playlists/\(playlistID)", decodeTo: Playlist.self);
+        
+        XCTAssertEqual(completePlaylist.id, playlistID)
+        XCTAssertEqual(completePlaylist.songs!.count, 1)
+        
+        
+        XCTAssertEqual(completePlaylist.song_details!.count, 1)
+        XCTAssertEqual(completePlaylist.song_details![0].id, songToAdd.id)
+        XCTAssertEqual(completePlaylist.song_details![0].title, songToAdd.title)
+        XCTAssertEqual(completePlaylist.song_details![0].thumb, songToAdd.thumb)
+ 
+
+
     }
 }

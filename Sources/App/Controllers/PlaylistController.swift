@@ -15,10 +15,12 @@ final class PlaylistController {
     func find(_ req: Request) throws -> Future<Playlist> {
         return try req.parameters.next(Playlist.self).flatMap { playlist in
             if playlist.songs == nil || playlist.songs?.count == 0 {
+
                 return req.future(playlist)
             } else {
                 let service = try req.make(ArtistService.self);
                 return try service.getSong(songIds: (playlist.songs)!, on: req).flatMap { songs in
+
                     playlist.song_details = songs;
                     return req.future(playlist);
                 }
