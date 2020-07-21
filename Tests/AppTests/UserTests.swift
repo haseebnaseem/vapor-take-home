@@ -28,6 +28,7 @@ class UserTests: XCTestCase {
     }
 
     func testCreateUser() throws {
+        print("hre")
         let newUser = User(name: "Tony")
         let user = try self.app.getResponse(to: "/users", method: .POST, data: newUser, decodeTo: User.self)
 

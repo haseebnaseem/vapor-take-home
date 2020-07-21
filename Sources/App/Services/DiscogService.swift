@@ -26,7 +26,7 @@ struct DiscogService: ArtistService {
         return try songIds.map {
             songId -> EventLoopFuture<Song> in
             let url = "https://api.discogs.com/releases/" + String(songId);
-            return try req.client().get(url).flatMap({ response in
+            return try req.client().get(url, headers: headers).flatMap({ response in
                 return try response.content.decode(Song.self)
             })
         }.flatten(on: req)

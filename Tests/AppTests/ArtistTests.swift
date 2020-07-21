@@ -31,6 +31,7 @@ class ArtistTests: XCTestCase {
     }
 
     func testGetArtists() throws {
+        
         let mockArtists = [
             Artist(id: 1, title: "Artist1", thumb: nil, coverImage: nil),
             Artist(id: 2, title: "Artist2", thumb: nil, coverImage: nil)
@@ -38,7 +39,7 @@ class ArtistTests: XCTestCase {
 
         mockArtistService.artistsToReturn = mockArtists
 
-        let search = "rickastley"
+        let search = "nirvana"
 
         let returnedArtists = try self.app.getResponse(to: "/artists/search?q=\(search)", method: .GET, decodeTo: [Artist].self)
 

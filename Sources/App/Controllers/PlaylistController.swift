@@ -31,6 +31,15 @@ final class PlaylistController {
             return playlist.delete(on: req)
         }.transform(to: .noContent)
     }
+    func update(_ req: Request) throws -> Future<Playlist> {
+        return try req.parameters.next(Playlist.self).flatMap({ playlist -> EventLoopFuture<Playlist> in
+            return try req.content.decode(Playlist.self).flatMap { updatedPlaylist -> EventLoopFuture<Playlist> in
+                playlist.name = updatedPlaylist.name
+                playlist.description = updatedPlaylist.description
+                return playlist.update(on: req)
+            }
+        })
+    }
     func addSong(_ req: Request) throws -> Future<Playlist> {
         return try req.parameters.next(Playlist.self).flatMap { playlist in
             let songId = try req.parameters.next(Int.self);
