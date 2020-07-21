@@ -103,5 +103,32 @@ class PlaylistTest: XCTestCase {
         XCTAssertEqual(withSongPlaylist.id, playlistID)
         XCTAssertEqual(withSongPlaylist.songs![0], songToAdd.id)
 
+        // Ensure a song is not added twice
+        
+        let withSameSongPlaylist = try self.app.getResponse(to: "/playlists/\(playlistID)/songs/\(songToAdd.id)", method: .POST, decodeTo: Playlist.self)
+        XCTAssertEqual(withSameSongPlaylist.id, playlistID)
+        XCTAssertEqual(withSameSongPlaylist.songs!.count, 1);
+    }
+    
+    func testRemoveSong() throws {
+        let newPlaylist = Playlist(name: "workout", description: "my workout playlist")
+        let playlist = try self.app.getResponse(to: "/playlists", method: .POST, data: newPlaylist, decodeTo: Playlist.self)
+        
+        let playlistID = try playlist.requireID()
+        let retrievedPlaylist = try self.app.getResponse(to: "/playlists/\(playlistID)", decodeTo: Playlist.self)
+
+        XCTAssertEqual(retrievedPlaylist.id, playlistID)
+        
+        let songToAdd = Song(id: 155876, title: "Insomnia", label: nil, thumb: "https://img.discogs.com/UbGgg61B8Lbo-nJC9-Kr44agCOY=/fit-in/150x150/filters:strip_icc():format(jpeg):mode_rgb():quality(40)/discogs-images/R-155876-1278467866.jpeg.jpg")
+        
+        
+        let withSongPlaylist = try self.app.getResponse(to: "/playlists/\(playlistID)/songs/\(songToAdd.id)", method: .POST, decodeTo: Playlist.self)
+        XCTAssertEqual(withSongPlaylist.id, playlistID)
+        XCTAssertEqual(withSongPlaylist.songs![0], songToAdd.id)
+        
+        let playlistWithSongRemoved = try self.app.getResponse(to: "/playlists/\(playlistID)/songs/\(songToAdd.id)", method: .DELETE, decodeTo: Playlist.self)
+        XCTAssertEqual(playlistWithSongRemoved.id, playlistID)
+        XCTAssertEqual(playlistWithSongRemoved.songs!.count, 0);
+        
     }
 }
